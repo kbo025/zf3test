@@ -1,6 +1,7 @@
 Ext.onReady(
     function () {
-        Ext.Msj.show (
+        console.log(Ext);
+        Ext.Msg.show (
             {
                 title: 'Mensaje',
                 msg: 'Hola Mundo',

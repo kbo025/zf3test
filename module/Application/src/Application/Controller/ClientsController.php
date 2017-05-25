@@ -18,9 +18,9 @@ class ClientsController extends AbstractActionController
 {
     public function indexAction()
     {
-        $this->view->headScript()->appendFile($this->view->baseUrl('js/vendor/extjs/build/ext-all.js'));
-        $this->view->headScript()->appendFile($this->view->baseUrl('js/ClientModule.js'));
-        $this->view->headLink()->appendStylesheet('/js/vendor/extjs/resources/.css');
+        //$this->view->headScript()->appendFile($this->view->baseUrl('js/vendor/extjs/build/ext-all.js'));
+        //$this->view->headScript()->appendFile($this->view->baseUrl('js/ClientModule.js'));
+        //$this->view->headLink()->appendStylesheet('js/vendor/extjs/resources/zf3app-all.css');
         return new ViewModel();
     }
 
