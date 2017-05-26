@@ -1,6 +1,8 @@
 <?php
-    $this->headScript()->appendFile($this->baseUrl.'/js/vendor/extjs/build/ext-all.js');
+    $this->headScript()->appendFile($this->baseUrl.'/js/vendor/extjs/build/ext-all-debug.js');
     $this->headScript()->appendFile($this->baseUrl.'/js/ClientsModule.js');
+    //$this->headLink()->appendStylesheet($this->baseUrl.'/css/Clients.css', 'screen');
     $this->headLink()->appendStylesheet($this->baseUrl.'/js/vendor/extjs/resources/zf3app-all.css', 'screen');
 ?>
-<h1>index de clientes</h1>
+<div id="binding-example">
+</div>

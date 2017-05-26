@@ -60,4 +60,29 @@ class ClientsController extends AbstractActionController
         }
         $this->getResponse()->setStatusCode(404);
     }
+
+    public function testclientsAction()
+    {
+        $response = [];
+        for ($i=1; $i<=50; $i++) {
+            $response[] = [
+                'id' => $i,
+                'name' => 'user '.$i,
+                'identification' => $i.$i.$i,
+                'email' => 'Email'.$i.'@gmail.com',
+                'phonePrimary' => $i.$i.$i,
+                'phoneSecondary' => $i.$i.$i,
+                'fax' => '',
+                'mobile' => '',
+                'observations' => $i.$i.$i,
+                'type' => 'client',
+                'address' => $i.$i.$i,
+                'seller' => [],
+                'term' => [],
+                'priceList' => [],
+                'internalContacts' => []
+            ];
+        }
+        return new JsonModel($response);
+    }
 }
