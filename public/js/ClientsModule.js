@@ -3,11 +3,20 @@ Ext.require([
     'Ext.data.*',
     'Ext.panel.*',
     'Ext.util.*',
-    'Ext.grid.filters.Filters',
     'Ext.layout.container.Border'
 ]);
 
 Ext.onReady(function(){
+
+
+    var win = Ext.create('Ext.window.Window',{
+        title: 'Ventana con formulario',
+        width: 400,
+        height: 500,
+        modal: true,
+        items: []
+    });
+
     Ext.define('Client',{
         extend: 'Ext.data.Model',
         proxy: {
@@ -37,34 +46,42 @@ Ext.onReady(function(){
 
     // create the Data Store
     var store = Ext.create('Ext.data.Store', {
-        model: 'Client',
-        pageSize: 50,
-        leadingBufferZone: 1000,
-        proxy: {
+        model   : 'Client',
+        //pageSize: 50,
+        //leadingBufferZone: 1000,
+        proxy   : {
             // load using HTTP
             type: 'ajax',
-            url: 'testclients',
+            api: {
+                read 	: "testclients",
+                create 	: "save",
+                update	: "save",
+                destroy	: "delete"
+            },
             // the return will be XML, so lets set up a reader
             reader: {
-                rootProperty: 'items',
-                totalProperty: 'total'
-            },
-            /*reader: {
                 type: 'json',
-                record: 'Item',
-                totalProperty  : 'total'
-            }*/
-            simpleSortMode: true,
-            filterParam: 'query'
+                totalProperty  : 'total',
+                rootProperty: 'items',
+            },
+            writer: {
+                type: 'json',
+                encode: true,
+                writeAllFields: true
+            }
+            //simpleSortMode: true,
+            //filterParam: 'query'
         },
-        listeners: {
+        /*listeners: {
             totalcountchange: onStoreSizeChange
-        },
-        remoteFilter: true,
-        autoLoad: true
+        },*/
+        //remoteFilter: true,
+        autoLoad: true,
+        autoSave: true,
+        autoSync: true
     });
 
-    Ext.override(store.getProxy(), {
+    /*Ext.override(store.getProxy(), {
         applyEncoding: function(a) {
             return a;
         }
@@ -80,7 +97,7 @@ Ext.onReady(function(){
             value,
             record.getId()
         );
-    }
+    }*/
 
     // create the grid
     var grid = Ext.create('Ext.grid.Panel', {
@@ -93,11 +110,57 @@ Ext.onReady(function(){
             {text: "Phone", width: 125, dataIndex: 'phonePrimary', sortable: true}
         ],
         forceFit: true,
-        height:210,
+        //height:210,
+        width: 600,
         split: true,
-        region: 'north',
-        loadMask: true,
-        dockedItems: [{
+        region: 'west',
+        tbar: [
+            {
+                text: "New",
+                scope: this,
+                handler: function() {
+                    win.show();
+                    console.log('presionaste el boton de actualizar');
+                },
+                iconCls:'delete-icon'
+            },
+            {
+                text:"Update",
+                scope:this,
+                handler: function() {
+                    var rows = grid.getSelectionModel().getSelection();
+                    if(rows.length === 0){
+                        return false;
+                    }
+                    win.show();
+                    console.log('presionaste el boton de actualizar');
+                },
+                iconCls:'delete-icon'
+            },
+			{
+                text:"Delete",
+                scope:this,
+                handler: function() {
+                    var rows = grid.getSelectionModel().getSelection();
+                    if(rows.length === 0){
+                        return false;
+                    }
+                    Ext.Msg.confirm(
+                        'Confirmación',
+                        '¿Desea Eliminar el cliente seleccionado?',
+                        function(btn) {
+                            if(btn === 'yes'){
+                                store.remove(rows[0]);
+                            }	
+                        }
+                    );
+                },
+                iconCls:'delete-icon'
+            }
+		],
+        stripeRows: true
+        //loadMask: true,
+        /*dockedItems: [{
             dock: 'top',
             xtype: 'toolbar',
             items: ['->', {
@@ -106,16 +169,16 @@ Ext.onReady(function(){
                 tpl: 'Matching threads: {count}',
                 style: 'margin-right:5px'
             }]
-        }],
-        selModel: {
+        }],*/
+        /*selModel: {
             pruneRemoved: false
-        },
-        multiSelect: true,
-        viewConfig: {
+        },*/
+        //multiSelect: true,
+        /*viewConfig: {
             trackOver: false,
             emptyText: '<h1 style="margin:20px">No matching results</h1>'
-        },
-        plugins: 'gridfilters',
+        },*/
+        //plugins: 'gridfilters',
     });
         
     // define a template to use for the detail view
@@ -131,8 +194,8 @@ Ext.onReady(function(){
         renderTo: 'binding-example',
         frame: true,
         title: 'Client List',
-        width: 580,
-        height: 500,
+        width: 1040,
+        height: 600,
         layout: 'border',
         items: [
             grid, {

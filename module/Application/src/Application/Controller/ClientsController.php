@@ -63,9 +63,9 @@ class ClientsController extends AbstractActionController
 
     public function testclientsAction()
     {
-        $response = [];
-        for ($i=1; $i<=50; $i++) {
-            $response[] = [
+        $data = [];
+        for ($i=0; $i<50; $i++) {
+            $data[] = [
                 'id' => $i,
                 'name' => 'user '.$i,
                 'identification' => $i.$i.$i,
@@ -83,6 +83,11 @@ class ClientsController extends AbstractActionController
                 'internalContacts' => []
             ];
         }
-        return new JsonModel($response);
+        return new JsonModel(
+            [
+                'items' => $data,
+                'total' => 200,
+            ]
+        );
     }
 }
