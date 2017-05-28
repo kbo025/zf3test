@@ -84,9 +84,28 @@ class ClientsController extends AbstractActionController
             ];
         }
         return new JsonModel(
-            [
+            [  
                 'items' => $data,
                 'total' => 200,
+            ]
+        );
+    }
+
+    public function deletetestAction() {
+        return new JsonModel(
+            [
+                'success' => true,
+                "msg"=>"Contact deleted successfully"
+            ]
+        );
+    }
+
+    public function savetestAction() {
+        return new JsonModel(
+            [
+                'success' => true,
+                "msg"=>"Contact deleted successfully",
+                'data' => [],
             ]
         );
     }
