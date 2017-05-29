@@ -105,7 +105,9 @@ class ClientsController extends AbstractActionController
             [
                 'success' => true,
                 "msg"=>"Contact deleted successfully",
-                'data' => [],
+                'data' => [
+                    'id' => 500,
+                ],
             ]
         );
     }

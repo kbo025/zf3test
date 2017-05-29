@@ -3,7 +3,7 @@ Ext.require([
     'Ext.data.*',
     'Ext.panel.*',
     'Ext.util.*',
-    'Ext.field.Select',
+    //'Ext.field.Select',
     'Ext.layout.container.Border'
 ]);
 
@@ -11,12 +11,12 @@ Ext.onReady(function(){
 
     var form = new Ext.form.FormPanel({
         region		: "north",
-        width: 400,
+        width       : 400,
 	    bodyStyle	: "padding: 10px;",
-	    url		: "serverside/updateContact.php",
+	    url		    : "serverside/updateContact.php",
 	    margins		: "3 3 3 3",
 	    border		: false,
-	    defaults		: {allowBlank: false},
+	    defaults	: {allowBlank: false},
 	    items		: [
             {xtype : "textfield", name : "id", hidden: true, allowBlank:true},
 			{xtype : "textfield", name : "identification", fieldLabel : "Identification"},
@@ -29,13 +29,13 @@ Ext.onReady(function(){
             {xtype : "textfield", name : 'mobile', fieldLabel : "Mobile", allowBlank:true, regexp: '/\d/i', invalidText: 'Not a valid value.'},
             {xtype : "textareafield", name : 'address', fieldLabel : 'Address'},
             {xtype : "textareafield", name : 'observations', fieldLabel : 'Observations', allowBlank:true},
-		],			
+		],
 	    fbar		: [
             {
                 text : "save",
                 scope : this,
                 handler: function() {
-                    if (!form.isvalid()) {
+                    if (!form.isValid()) {
                         Ext.Msg.alert("Error","Campos Incorrectos!!!");
                         return false;
                     }
@@ -43,7 +43,7 @@ Ext.onReady(function(){
                     if (rec) {
                         form.updateRecord(rec);
                     } else {
-                        var contact = new store.recordType({
+                        let contact = Ext.create('Client',{
 			                identification	: form.getForm().getValues().identification,
 			                name	: form.getForm().getValues().name,
 			                //type	: form.getForm().getValues().type,
@@ -55,8 +55,9 @@ Ext.onReady(function(){
                             address	: form.getForm().getValues().address,
                             observations	: form.getForm().getValues().observations,
 		                });
-		                store.insert(0,contact);
+                        store.insert(0,contact);
                     }
+                    form.reset(true);
                     win.hide();
                 }
             }
@@ -118,10 +119,10 @@ Ext.onReady(function(){
     });
 
     // create the Data Store
-    var store = Ext.create('Ext.data.BufferedStore', {
+    var store = Ext.create('Ext.data.Store', {
         model   : 'Client',
-        pageSize: 50,
-        leadingBufferZone: 1000,
+        //pageSize: 50,
+        //leadingBufferZone: 1000,
         proxy   : {
             // load using HTTP
             type: 'ajax',
@@ -173,14 +174,14 @@ Ext.onReady(function(){
 
     // create the grid
     var grid = Ext.create('Ext.grid.Panel', {
-        bufferedRenderer: false,
+        //bufferedRenderer: false,
         store: store,
         forceFit: true,
         width: 600,
         split: true,
         region: 'west',
         collapsible: true,
-        remoteSort: 'true',
+        remoteSort: true,
         columns: [
             {text: "Identification", width: 120, dataIndex: 'identification', sortable: true},
             {
@@ -204,8 +205,8 @@ Ext.onReady(function(){
                 text: "New",
                 scope: this,
                 handler: function() {
+                    form.reset(true);
                     win.show();
-                    console.log('presionaste el boton de actualizar');
                 },
                 iconCls:'delete-icon'
             },
@@ -218,7 +219,6 @@ Ext.onReady(function(){
                         return false;
                     }
                     win.show();
-                    console.log('presionaste el boton de actualizar');
                 },
                 iconCls:'delete-icon'
             },
@@ -236,6 +236,7 @@ Ext.onReady(function(){
                         function(btn) {
                             if(btn === 'yes'){
                                 store.remove(rows[0]);
+                                form.reset(true);
                             }	
                         }
                     );
@@ -255,25 +256,17 @@ Ext.onReady(function(){
                 style: 'margin-right:5px'
             }]
         }],
-        selModel: {
-            pruneRemoved: false
-        },
-        //multiSelect: true,
-        /*viewConfig: {
-            trackOver: false,
-            emptyText: '<h1 style="margin:20px">No matching results</h1>'
-        },*/
         plugins: 'gridfilters',
     });
         
-    // define a template to use for the detail view
-    var bookTplMarkup = [
+    var tplMarkup = [
+        'Id: {id}<br/>',
         'Identification: {identification}<br/>',
         'Name: {name}<br/>',
         'Email: {email}<br/>',
         'Phone Primary: {phonePrimary}<br/>'
     ];
-    var bookTpl = Ext.create('Ext.Template', bookTplMarkup);
+    var tpl = Ext.create('Ext.Template', tplMarkup);
 
     Ext.create('Ext.Panel', {
         renderTo: 'binding-example',
@@ -296,7 +289,7 @@ Ext.onReady(function(){
     grid.getSelectionModel().on('selectionchange', function(sm, selectedRecord) {
         if (selectedRecord.length) {
             var detailPanel = Ext.getCmp('detailPanel');
-            detailPanel.update(bookTpl.apply(selectedRecord[0].data));
+            detailPanel.update(tpl.apply(selectedRecord[0].data));
             form.loadRecord(selectedRecord[0]);
         }
     });
