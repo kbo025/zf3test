@@ -1,12 +1,11 @@
 <?php
-
-namespace Application\Models;
+namespace Application\Model;
 
 class Client 
 {
     const url = 'https://app.alegra.com/api/v1/contacts/';
     const token = '';
-    const email = '';
+    const email = 'kbo025@gmail.com';
 
     private $id;
     private $name;
@@ -64,30 +63,30 @@ class Client
         return $response;
     }
 
-    public function search($page,$order_field,$order_direction,$query,$type = "provider")
+    public function search($page = 1, $query = null, $type = "client", $order_field = 'name',$order_direction = 'ASC')
     {
         try {
             $params = [
-                'start' => ($page - 1) * 10,
-                'limit' => 10,
+                'start' => ($page - 1) * 30,
+                'limit' => 30,
                 'order_field' => $order_field,
                 'order_direction' => $order_direction,
-                'query' => $query,
+                'que                ry' => $query,
                 'type' => $type
             ];
-            $params_string = 'metadata=1';
+            $params_string = '?metadata=true';
             foreach ($params as $key => $value) {
                 if(!empty($value))
                     $params_string = $params_string.'&'.$key.'='.$value;
             }
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER,["Authorization: Basic " . base64_encode(self::email.':'.self::token)]);
-            curl_setopt($ch, CURLOPT_URL,self::url_search);
+            curl_setopt($ch, CURLOPT_URL,self::url.$params_string);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
+            $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
-            $response['metadata']['currentPage'] = $page;
-            $response['metadata']['amountPages'] = ceil($response['total'] / 10);
+            //$response['metadata']['currentPage'] = $page;
+            //$response['metadata']['amountPages'] = isset($response['total']) ? ceil($response['total'] / 10) : 0;
             return $response;
         } catch (Exception $e) {
             return false;
@@ -107,9 +106,8 @@ class Client
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($this->serialize()));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
+            $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
-
             $this->id = $response['id'];
         } catch (Exception $e) {
             return false;
@@ -128,7 +126,7 @@ class Client
             curl_setopt($ch, CURLOPT_HTTPHEADER,["Authorization: Basic " . base64_encode(self::email.':'.self::token)]);
             curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($request));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
+            $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
             return $response['code'] == 200;
         } catch (Exception $e) {

@@ -12,26 +12,32 @@ namespace Application\Controller;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
-use Application\Models\Client;
+use Application\Model\Client;
 
 class ClientsController extends AbstractActionController
 {
     public function indexAction()
     {
-        //$this->view->headScript()->appendFile($this->view->baseUrl('js/vendor/extjs/build/ext-all.js'));
-        //$this->view->headScript()->appendFile($this->view->baseUrl('js/ClientModule.js'));
-        //$this->view->headLink()->appendStylesheet('js/vendor/extjs/resources/zf3app-all.css');
         return new ViewModel();
     }
 
     public function searchAction()
     {
         if ($this->getRequest()->isXmlHttpRequest()) {
-            $client = new Client($this->getRequest()->getParams());
-            $data = $client->search(); 
-            if ($data)
-                return new JsonModel(['code' => 201, 'message' => 'OK', 'data' => $data]);
-            else
+            $client = new Client();
+            $query = $this->getRequest()->getQuery();
+            $data = $client->search (
+                isset($query['page']) ? $query['page'] : 1, 
+                isset($query['query']) ? $query['query'] : null 
+            );
+            if ($data) {   
+                return new JsonModel([
+                    'success' => true,
+                    'msg' => 'OK',
+                    'total' => $data['metadata']['total'],
+                    'items' => $data['data']
+                ]);
+            }
                 return new JsonModel(['code' => 400, 'message' => 'Bad Request']);
         }
         $this->getResponse()->setStatusCode(404);
@@ -40,11 +46,20 @@ class ClientsController extends AbstractActionController
     public function saveAction()
     {
         if ($this->getRequest()->isXmlHttpRequest()) {
+
+            $this->getResponse()->setStatusCode(404);
+            die(var_dump($this->_getParams()));
+            return new JsonModel([ 'data' => $this->getRequest()->getPost('name') ]);
+
             $client = new Client($this->getRequest()->getParams());
             if ($client->save())
-                return new JsonModel(['code' => 201, 'message' => 'OK']);
+                return new JsonModel([
+                    'success' => true,
+                    'msg' => 'OK',
+                    'data' => $client->serialize()
+                ]);
             else
-                return new JsonModel(['code' => 400, 'message' => 'Bad Request']);
+                return new JsonModel(['success' => false, 'message' => 'Bad Request']);
         }
         $this->getResponse()->setStatusCode(404);
     }
@@ -52,63 +67,16 @@ class ClientsController extends AbstractActionController
     public function deleteAction()
     {
         if ($this->getRequest()->isXmlHttpRequest()) {
-            $client = new Client($this->getRequest()->getParams());
+            $client = new Client($this->getRequest()->getPost());
             if ($client->delete())
-                return new JsonModel(['code' => 201, 'message' => 'OK']);
+                return new JsonModel([
+                    'success' => true,
+                    'msg' => 'OK',
+                    'data' => $client->serialize()
+                ]);
             else
-                return new JsonModel(['code' => 400, 'message' => 'Bad Request']);
+                return new JsonModel(['success' => false, 'message' => 'Bad Request']);
         }
         $this->getResponse()->setStatusCode(404);
-    }
-
-    public function testclientsAction()
-    {
-        $data = [];
-        for ($i=0; $i<50; $i++) {
-            $data[] = [
-                'id' => $i,
-                'name' => 'user '.$i,
-                'identification' => $i.$i.$i,
-                'email' => 'Email'.$i.'@gmail.com',
-                'phonePrimary' => $i.$i.$i,
-                'phoneSecondary' => $i.$i.$i,
-                'fax' => '',
-                'mobile' => '',
-                'observations' => $i.$i.$i,
-                'type' => 'client',
-                'address' => $i.$i.$i,
-                'seller' => [],
-                'term' => [],
-                'priceList' => [],
-                'internalContacts' => []
-            ];
-        }
-        return new JsonModel(
-            [  
-                'items' => $data,
-                'total' => 200,
-            ]
-        );
-    }
-
-    public function deletetestAction() {
-        return new JsonModel(
-            [
-                'success' => true,
-                "msg"=>"Contact deleted successfully"
-            ]
-        );
-    }
-
-    public function savetestAction() {
-        return new JsonModel(
-            [
-                'success' => true,
-                "msg"=>"Contact deleted successfully",
-                'data' => [
-                    'id' => 500,
-                ],
-            ]
-        );
     }
 }
