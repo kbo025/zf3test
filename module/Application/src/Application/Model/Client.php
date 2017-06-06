@@ -98,7 +98,7 @@ class Client
     public function save()
     {
         try {
-            $data = $this->constructData();
+            $data = json_encode($this->constructData());
             $ch = curl_init();
             if (empty($this->id))
                 curl_setopt($ch, CURLOPT_POST, 1);
@@ -106,7 +106,7 @@ class Client
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_setopt($ch, CURLOPT_HTTPHEADER,["Authorization: Basic " . base64_encode(self::email.':'.self::token)]);
             curl_setopt($ch, CURLOPT_URL,self::url);
-            curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
+            curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
@@ -121,12 +121,8 @@ class Client
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL,self::url.$this->id);
-            if($method==='POST')
-                curl_setopt($ch, CURLOPT_POST, 1);
-            else
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
             curl_setopt($ch, CURLOPT_HTTPHEADER,["Authorization: Basic " . base64_encode(self::email.':'.self::token)]);
-            curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($request));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = json_decode(curl_exec($ch),true);
             curl_close($ch);

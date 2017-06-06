@@ -51,15 +51,14 @@ class ClientsController extends AbstractActionController
             $data = json_decode($this->getRequest()->getContent(),true);
             $client = new Client($data);
             $response = $client->save(); 
-            if ($response['susses'])
+            if ($response)
                 return new JsonModel([
                     'success' => true,
                     'msg' => 'OK',
-                    'data' => $client->serialize()
+                    'data' => $response
                 ]);
             else
-            $response = $client->save();
-                return new JsonModel(['success' => false, 'message' => 'Bad Request','data' => $response]);
+                return new JsonModel(['success' => false, 'message' => 'Bad Request']);
         }
         $this->getResponse()->setStatusCode(404);
         return new JsonModel(['success' => false, 'message' => 'Bad Request']);
