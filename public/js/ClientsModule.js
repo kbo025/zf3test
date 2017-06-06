@@ -18,13 +18,13 @@ Ext.onReady(function(){
 	    defaults	: {allowBlank: false},
 	    items		: [
             {xtype : "textfield", name : "id", hidden: true, allowBlank:true},
-			{xtype : "textfield", name : "identification", fieldLabel : "Identification"},
+			{xtype : "textfield", name : "identification", fieldLabel : "Identification", allowBlank:true},
 			{xtype : "textfield", name : "name", fieldLabel : "Name"},
 			{
                 xtype       : "fieldcontainer",
                 name        : "type",
                 fieldLabel  : "Type",
-                defaultType : 'radiofield',
+                defaultType : 'checkboxfield',
                 defaults    : {flex: 1},
                 layout      : 'hbox',
                 items       : [
@@ -41,12 +41,13 @@ Ext.onReady(function(){
                     }
                 ]
             },
-            {xtype : "textfield", name : "email", fieldLabel : "E-mail", vtype :"email"},
-            {xtype : "textfield", name : "phonePrimary", fieldLabel : "Primary Phone", regexp: '/\d/i', invalidText: 'Not a valid value.'},
+            {xtype : "textfield", name : "email", fieldLabel : "E-mail", vtype :"email", allowBlank:true},
+            {xtype : "textfield", name : "phonePrimary", fieldLabel : "Primary Phone", regexp: '/\d/i', invalidText: 'Not a valid value.', allowBlank:true},
             {xtype : "textfield", name : 'phoneSecondary', fieldLabel : "Secondary Phone", allowBlank:true, regexp: '/\d/i', invalidText: 'Not a valid value.'},
             {xtype : "textfield", name : 'fax', fieldLabel : "Fax", allowBlank:true, regexp: '/\d/i', invalidText: 'Not a valid value.'},
             {xtype : "textfield", name : 'mobile', fieldLabel : "Mobile", allowBlank:true, regexp: '/\d/i', invalidText: 'Not a valid value.'},
-            {xtype : "textareafield", name : 'address', fieldLabel : 'Address'},
+            {xtype : "textfield", name : 'city', fieldLabel : 'City', allowBlank:true},
+            {xtype : "textareafield", name : 'dir', fieldLabel : 'Address', allowBlank:true},
             {xtype : "textareafield", name : 'observations', fieldLabel : 'Observations', allowBlank:true},
 		],
 	    fbar		: [
@@ -60,6 +61,7 @@ Ext.onReady(function(){
                     }
                     let rec = form.getRecord();
                     if (rec) {
+                        rec.data.address.address = form.getForm().getValues().dir;
                         form.updateRecord(rec);
                     } else {
                         let contact = Ext.create('Client',{
@@ -71,7 +73,12 @@ Ext.onReady(function(){
                             phoneSecondary	: form.getForm().getValues().phoneSecondary,
                             fax	            : form.getForm().getValues().fax,
                             mobile	        : form.getForm().getValues().mobile,
-                            address	        : form.getForm().getValues().address,
+                            address	        : {
+                                address : form.getForm().getValues().dir,
+                                city    : form.getForm().getValues().city,
+                            },
+                            dir             : form.getForm().getValues().dir,
+                            city            : form.getForm().getValues().city,
                             observations	: form.getForm().getValues().observations,
 		                });
                         store.insert(0,contact);
@@ -126,7 +133,9 @@ Ext.onReady(function(){
             'mobile',
             'observations',
             'type',
-            'address',
+            {name: 'address', type: 'auto'},
+            {name: 'city', type: 'string', mapping:'address.city'},
+            {name: 'dir', type: 'string', mapping:'address.address'},
             'seller',
             'term',
             'priceList',
@@ -176,16 +185,15 @@ Ext.onReady(function(){
         ],
         tbar        : [
             {
-                text    : "New",
+                text    :'<span class="glyphicon glyphicon-plus"></span>',
                 scope   : this,
                 handler : function() {
                     form.reset(true);
                     win.show();
-                },
-                iconCls :'delete-icon'
+                }
             },
             {
-                text    :"Update",
+                text    :'<span class="glyphicon glyphicon-pencil"></span>',
                 scope   :this,
                 handler : function() {
                     var rows = grid.getSelectionModel().getSelection();
@@ -193,11 +201,10 @@ Ext.onReady(function(){
                         return false;
                     }
                     win.show();
-                },
-                iconCls :'delete-icon'
+                }
             },
 			{
-                text    :"Delete",
+                text    :'<span class="glyphicon glyphicon-remove"></span>',
                 scope   :this,
                 handler : function() {
                     var rows = grid.getSelectionModel().getSelection();
@@ -214,10 +221,15 @@ Ext.onReady(function(){
                             }	
                         }
                     );
-                },
-                iconCls :'delete-icon'
+                }
             }
 		],
+        bbar: Ext.create('Ext.PagingToolbar', {
+            store: store,
+            displayInfo: false,
+            inputItemWidth: 35,
+            items:[]
+        }),
         stripeRows  : true,
         loadMask    : true,
         dockedItems : [{
@@ -234,11 +246,17 @@ Ext.onReady(function(){
     });
         
     var tplMarkup = [
-        'Id: {id}<br/>',
-        'Identification: {identification}<br/>',
-        'Name: {name}<br/>',
-        'Email: {email}<br/>',
-        'Phone Primary: {phonePrimary}<br/>'
+        '<div class="row"><div class="col-sm-6">Identification</div><div class="col-sm-6">{identification}</div></div>',
+        '<div class="row"><div class="col-sm-6">Name</div><div class="col-sm-6">{name}</div></div>',
+        '<div class="row"><div class="col-sm-6">Email</div><div class="col-sm-6">{email}</div></div>',
+        '<div class="row"><div class="col-sm-6">Phone Primary</div><div class="col-sm-6">{phonePrimary}</div></div>',
+        '<div class="row"><div class="col-sm-6">Phone Secondary</div><div class="col-sm-6">{phoneSecondary}</div></div>',
+        '<div class="row"><div class="col-sm-6">Fax</div><div class="col-sm-6">{fax}</div></div>',
+        '<div class="row"><div class="col-sm-6">Mobile</div><div class="col-sm-6">{mobile}</div></div>',
+        '<div class="row"><div class="col-sm-6">type</div><div class="col-sm-6">{type}</div></div>',
+        '<div class="row"><div class="col-sm-6">City</div><div class="col-sm-6">{city}</div></div>',
+        '<div class="row"><div class="col-sm-6">Address</div><div class="col-sm-6">{dir}</div></div>',
+        '<div class="row"><div class="col-sm-6">Observations</div><div class="col-sm-6">{observations}</div></div>',
     ];
     var tpl = Ext.create('Ext.Template', tplMarkup);
 
@@ -266,6 +284,7 @@ Ext.onReady(function(){
             var detailPanel = Ext.getCmp('detailPanel');
             detailPanel.update(tpl.apply(selectedRecord[0].data));
             form.loadRecord(selectedRecord[0]);
+            form.getForm().getValues().address = selectedRecord[0].data.dir
         }
     });
 

@@ -28,9 +28,10 @@ class ClientsController extends AbstractActionController
             $query = $this->getRequest()->getQuery();
             $data = $client->search (
                 isset($query['page']) ? $query['page'] : 1, 
-                isset($query['query']) ? $query['query'] : null 
+                isset($query['query']) ? $query['query'] : null,
+                isset($query['limit']) ? $query['limit'] : null
             );
-            if ($data) {   
+            if ($data) {
                 return new JsonModel([
                     'success' => true,
                     'msg' => 'OK',
@@ -38,7 +39,8 @@ class ClientsController extends AbstractActionController
                     'items' => $data['data']
                 ]);
             }
-                return new JsonModel(['code' => 400, 'message' => 'Bad Request']);
+            $this->getResponse()->setStatusCode(404);
+            return new JsonModel(['code' => 400, 'message' => 'Bad Request','data' => $data]);
         }
         $this->getResponse()->setStatusCode(404);
     }
@@ -46,28 +48,28 @@ class ClientsController extends AbstractActionController
     public function saveAction()
     {
         if ($this->getRequest()->isXmlHttpRequest()) {
-
-            $this->getResponse()->setStatusCode(404);
-            die(var_dump($this->_getParams()));
-            return new JsonModel([ 'data' => $this->getRequest()->getPost('name') ]);
-
-            $client = new Client($this->getRequest()->getParams());
-            if ($client->save())
+            $data = json_decode($this->getRequest()->getContent(),true);
+            $client = new Client($data);
+            $response = $client->save(); 
+            if ($response['susses'])
                 return new JsonModel([
                     'success' => true,
                     'msg' => 'OK',
                     'data' => $client->serialize()
                 ]);
             else
-                return new JsonModel(['success' => false, 'message' => 'Bad Request']);
+            $response = $client->save();
+                return new JsonModel(['success' => false, 'message' => 'Bad Request','data' => $response]);
         }
         $this->getResponse()->setStatusCode(404);
+        return new JsonModel(['success' => false, 'message' => 'Bad Request']);
     }
 
     public function deleteAction()
     {
         if ($this->getRequest()->isXmlHttpRequest()) {
-            $client = new Client($this->getRequest()->getPost());
+            $data = json_decode($this->getRequest()->getContent(),true);
+            $client = new Client($data);
             if ($client->delete())
                 return new JsonModel([
                     'success' => true,

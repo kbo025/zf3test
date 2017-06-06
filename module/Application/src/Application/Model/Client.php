@@ -18,6 +18,7 @@ class Client
     private $observations;
     private $type; //["client", "provider"],
     private $address; //{"address" : "Calle principal #45","city" : "Barcelona"},
+    private $city;
     private $seller; //{"id" : "12","name" : "Diana Giraldo","identification" : "520.526.21","observations" : "Líder de Ventas"},
     private $term; //{"id" : 1,"name" : "8 días","days" : 8},
     private $priceList; //{"id" : 5,"name" : "Distribuidor"},
@@ -63,15 +64,15 @@ class Client
         return $response;
     }
 
-    public function search($page = 1, $query = null, $type = "client", $order_field = 'name',$order_direction = 'ASC')
+    public function search($page = 1, $start = 0,  $limit = 10, $query = null, $type = null, $order_field = 'name',$order_direction = 'ASC')
     {
         try {
             $params = [
-                'start' => ($page - 1) * 30,
-                'limit' => 30,
+                'start' => $start,
+                'limit' => $limit,
                 'order_field' => $order_field,
                 'order_direction' => $order_direction,
-                'que                ry' => $query,
+                'query' => $query,
                 'type' => $type
             ];
             $params_string = '?metadata=true';
@@ -85,30 +86,31 @@ class Client
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
-            //$response['metadata']['currentPage'] = $page;
-            //$response['metadata']['amountPages'] = isset($response['total']) ? ceil($response['total'] / 10) : 0;
+            $response['metadata']['currentPage'] = $page;
+            $response['metadata']['amountPages'] = isset($response['total']) ? ceil($response['total'] / 10) : 0;
             return $response;
         } catch (Exception $e) {
             return false;
         }
+        return false;
     }
 
     public function save()
     {
         try {
+            $data = $this->constructData();
             $ch = curl_init();
             if (empty($this->id))
                 curl_setopt($ch, CURLOPT_POST, 1);
-            else            
+            else
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
             curl_setopt($ch, CURLOPT_HTTPHEADER,["Authorization: Basic " . base64_encode(self::email.':'.self::token)]);
-            curl_setopt($ch, CURLOPT_URL,self::url.$this->id);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-            curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($this->serialize()));
+            curl_setopt($ch, CURLOPT_URL,self::url);
+            curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = json_decode(curl_exec($ch),true);
             curl_close($ch);
-            $this->id = $response['id'];
+            return $response;
         } catch (Exception $e) {
             return false;
         }
@@ -132,5 +134,26 @@ class Client
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    private function constructData()
+    {
+        return [
+            "name" => $this->name,
+            "identification" => $this->identification,
+            "email" => $this->email,
+            "phonePrimary" => $this->phonePrimary,
+            "phoneSecondary" => $this->phoneSecondary,
+            "fax" => $this->fax,
+            "mobile" => $this->mobile,
+            'ignoreRepeated' => false,
+            "observations" => $this->observations,
+            "address" => $this->address,
+            "type" => $this->type,
+            "seller" => null,
+            "term" => null,
+            "priceList" => null,
+            "internalContacts" => []
+        ];
     }
 }
